@@ -189,7 +189,7 @@ export async function POST(request: NextRequest) {
     
     if (hasEmailConfig) {
       // 이메일 전송을 별도 함수로 분리하여 안전 처리
-      setImmediate(async () => {
+      setTimeout(async () => {
         try {
           await sendQuoteNotificationEmail({
             name: safeData.contact.name,
@@ -206,7 +206,7 @@ export async function POST(request: NextRequest) {
           console.error(`❌ Email notification failed for quote: ${quoteId}`, emailError)
           // 이메일 실패는 로그만 남기고 API 응답에는 영향 없음
         }
-      })
+      }, 0)
     } else {
       console.warn(`⚠️ Email notification skipped for quote ${quoteId}: Missing RESEND_API_KEY or ADMIN_EMAIL`)
     }
