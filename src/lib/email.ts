@@ -40,6 +40,7 @@ export async function sendQuoteNotificationEmail(data: QuoteEmailData): Promise<
     const adminEmail = process.env.ADMIN_EMAIL || 'dahaedeulio@gmail.com'
     console.log('📧 Admin email:', adminEmail)
     console.log('📧 From address: onboarding@resend.dev (Resend 무료 플랜)')
+    console.log('📧 Reply-to address: dahaedeulio@gmail.com')
     
     if (!adminEmail) {
       console.error('❌ ADMIN_EMAIL environment variable is not set')
@@ -149,6 +150,9 @@ export async function sendQuoteNotificationEmail(data: QuoteEmailData): Promise<
             <p style="margin: 5px 0 0 0; font-size: 14px; opacity: 0.8;">
               다해드리오 | 믿을 수 있는 청소 서비스
             </p>
+            <p style="margin: 5px 0 0 0; font-size: 12px; opacity: 0.7;">
+              회신: dahaedeulio@gmail.com
+            </p>
           </div>
         </div>
       </body>
@@ -178,11 +182,14 @@ ${data.additionalInfo || '특별한 요청사항 없음'}
 ⚡ 30분 내 연락 약속 - 빠른 대응이 필요합니다!
 
 관리자 페이지: ${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3005'}/admin/quotes
+
+회신 주소: dahaedeulio@gmail.com
     `
 
     const result = await resendInstance.emails.send({
-      from: '다해드리오 <onboarding@resend.dev>',
+      from: 'onboarding@resend.dev',
       to: [adminEmail],
+      reply_to: 'dahaedeulio@gmail.com',
       subject: '[다해드리오] 새로운 견적 요청이 도착했습니다',
       html: emailHtml,
       text: emailText,
@@ -206,15 +213,17 @@ export async function sendTestEmail(to: string): Promise<boolean> {
     }
 
     const result = await resendInstance.emails.send({
-      from: '다해드리오 <onboarding@resend.dev>',
+      from: 'onboarding@resend.dev',
       to: [to],
+      reply_to: 'dahaedeulio@gmail.com',
       subject: '[다해드리오] 이메일 테스트',
       html: `
         <h1>이메일 설정 테스트</h1>
         <p>다해드리오 이메일 알림 시스템이 정상적으로 작동합니다.</p>
         <p>테스트 시간: ${new Date().toLocaleString('ko-KR')}</p>
+        <p><strong>회신 주소:</strong> dahaedeulio@gmail.com</p>
       `,
-      text: `이메일 설정 테스트\n\n다해드리오 이메일 알림 시스템이 정상적으로 작동합니다.\n테스트 시간: ${new Date().toLocaleString('ko-KR')}`
+      text: `이메일 설정 테스트\n\n다해드리오 이메일 알림 시스템이 정상적으로 작동합니다.\n테스트 시간: ${new Date().toLocaleString('ko-KR')}\n\n회신 주소: dahaedeulio@gmail.com`
     })
 
     console.log('Test email sent successfully:', result.data?.id)

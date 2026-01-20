@@ -54,8 +54,9 @@ export default function TestEmailPage() {
             <div className="bg-blue-50 p-4 rounded-lg">
               <h3 className="font-semibold text-blue-900 mb-2">📧 이메일 설정 정보</h3>
               <ul className="text-sm text-blue-800 space-y-1">
-                <li>• <strong>From:</strong> onboarding@resend.dev (Resend 무료 플랜)</li>
+                <li>• <strong>From:</strong> onboarding@resend.dev (Resend 무료 플랜 전용)</li>
                 <li>• <strong>To:</strong> dahaedeulio@gmail.com</li>
+                <li>• <strong>Reply-To:</strong> dahaedeulio@gmail.com</li>
                 <li>• <strong>Service:</strong> Resend Email API</li>
               </ul>
             </div>
@@ -119,8 +120,9 @@ export default function TestEmailPage() {
           <div className="text-center text-sm text-gray-500">
             <p>이메일이 전송되지 않는다면:</p>
             <p>1. Vercel 환경 변수에서 RESEND_API_KEY 확인</p>
-            <p>2. Resend 대시보드에서 API 키 상태 확인</p>
+            <p>2. Resend 대시보드에서 API 키 상태 및 발송 로그 확인</p>
             <p>3. 스팸 폴더 확인</p>
+            <p>4. From 주소가 onboarding@resend.dev인지 확인</p>
           </div>
         </div>
       </div>
