@@ -292,7 +292,7 @@ export default function QuotePage() {
                     type="text"
                     value={formData.contact.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
-                    placeholder="홍길동"
+                      placeholder="오다윗"
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                     required
                   />

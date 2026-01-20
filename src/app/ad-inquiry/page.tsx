@@ -148,13 +148,13 @@ export default function AdInquiryPage() {
 
           <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
             <a
-              href="mailto:ad@daehaderio.com"
+              href="mailto:dahaedeulio@gmail.com"
               className="flex items-center justify-center p-6 border-2 border-accent-200 rounded-xl hover:border-accent-400 hover:bg-accent-50 transition-all group"
             >
               <Mail className="h-6 w-6 text-accent-600 mr-3 group-hover:scale-110 transition-transform" />
               <div>
                 <div className="font-semibold text-brand-800">이메일 문의</div>
-                <div className="text-sm text-brand-600">ad@daehaderio.com</div>
+                <div className="text-sm text-brand-600">dahaedeulio@gmail.com</div>
               </div>
             </a>
 

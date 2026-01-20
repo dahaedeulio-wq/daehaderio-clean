@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     } else if (type === 'quote') {
       // 견적 알림 이메일 테스트
       success = await sendQuoteNotificationEmail({
-        name: '홍길동',
+        name: '오다윗',
         phone: '010-1234-5678',
         address: '서울시 강남구 테헤란로 123',
         serviceType: 'direct',

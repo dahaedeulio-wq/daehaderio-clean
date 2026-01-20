@@ -55,14 +55,14 @@ npm start
 ### 환경 변수 설정
 ```env
 RESEND_API_KEY=your_resend_api_key
-ADMIN_EMAIL=admin@yourdomain.com
+ADMIN_EMAIL=dahaedeulio@gmail.com
 NEXT_PUBLIC_SITE_URL=https://yourdomain.vercel.app
 ```
 
 ## 📞 연락처
 
 - **전화**: 010-6445-5367
-- **이메일**: contact@daehaderio.com
+- **이메일**: dahaedeulio@gmail.com
 - **주소**: 서울 서초구 서초중앙로5길 10-8
 
 ## 📄 라이선스
