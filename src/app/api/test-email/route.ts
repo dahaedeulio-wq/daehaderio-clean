@@ -21,8 +21,8 @@ export async function POST(request: NextRequest) {
       // 견적 알림 이메일 테스트
       success = await sendQuoteNotificationEmail({
         name: '오다윗',
-        phone: '010-1234-5678',
-        address: '서울시 강남구 테헤란로 123',
+        phone: '010-6445-5367',
+        address: '서울 서초구 서초중앙로5길 10-8',
         serviceType: 'direct',
         cleaningType: '일반 가정 청소',
         additionalInfo: '거실과 침실 청소 부탁드립니다. 애완동물이 있어서 친환경 세제 사용해주세요.',

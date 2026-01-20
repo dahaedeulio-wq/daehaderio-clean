@@ -35,7 +35,10 @@ interface QuoteEmailData {
 
 export async function sendQuoteNotificationEmail(data: QuoteEmailData): Promise<boolean> {
   try {
-    const adminEmail = process.env.ADMIN_EMAIL
+    console.log('📧 Starting email notification process...')
+    
+    const adminEmail = process.env.ADMIN_EMAIL || 'dahaedeulio@gmail.com'
+    console.log('📧 Admin email:', adminEmail)
     
     if (!adminEmail) {
       console.error('❌ ADMIN_EMAIL environment variable is not set')
@@ -47,6 +50,8 @@ export async function sendQuoteNotificationEmail(data: QuoteEmailData): Promise<
       console.error('❌ Resend instance not available')
       return false
     }
+    
+    console.log('✅ Resend instance ready, preparing email...')
 
     const serviceTypeText = data.serviceType === 'direct' ? '다해드리오 직접 청소' : '검증된 업체 연결'
     const submittedTime = new Date(data.submittedAt).toLocaleString('ko-KR', {
