@@ -36,6 +36,13 @@ interface QuoteEmailData {
 export async function sendQuoteNotificationEmail(data: QuoteEmailData): Promise<boolean> {
   try {
     console.log('📧 Starting email notification process...')
+    console.log('📧 Quote data:', {
+      name: data.name,
+      phone: data.phone,
+      address: data.address,
+      serviceType: data.serviceType,
+      quoteId: data.quoteId
+    })
     
     const adminEmail = process.env.ADMIN_EMAIL || 'dahaedeulio@gmail.com'
     console.log('📧 Admin email:', adminEmail)
@@ -195,11 +202,17 @@ ${data.additionalInfo || '특별한 요청사항 없음'}
       text: emailText,
     })
 
-    console.log('Email sent successfully:', result.data?.id)
+    console.log('✅ Email sent successfully!')
+    console.log('📧 Email ID:', result.data?.id)
+    console.log('📧 Email result:', result)
     return true
 
   } catch (error) {
-    console.error('Failed to send email notification:', error)
+    console.error('❌ Failed to send email notification:', error)
+    console.error('❌ Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : 'No stack trace'
+    })
     return false
   }
 }

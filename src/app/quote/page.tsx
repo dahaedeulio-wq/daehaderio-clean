@@ -117,6 +117,10 @@ export default function QuotePage() {
       }
     } catch (error) {
       console.error('Error submitting quote:', error)
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : 'No stack trace'
+      })
       setError('네트워크 연결에 문제가 있습니다. 인터넷 연결을 확인하고 다시 시도해주세요.')
     } finally {
       setIsLoading(false)

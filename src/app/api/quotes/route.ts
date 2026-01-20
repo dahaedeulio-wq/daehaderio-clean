@@ -33,11 +33,19 @@ interface QuoteRequest {
 export async function POST(request: NextRequest) {
   let quoteId: string | null = null
   
+  console.log('🚀 Quote request started at:', new Date().toISOString())
+  
   try {
     // 요청 데이터 파싱 with 안전 처리
     let data: QuoteRequest
     try {
       data = await request.json()
+      console.log('📝 Request data received:', {
+        serviceType: data.serviceType,
+        cleaningType: data.cleaningType,
+        hasContact: !!data.contact,
+        hasLocation: !!data.location
+      })
     } catch (jsonError) {
       console.error('❌ JSON parsing error:', jsonError)
       return NextResponse.json(
@@ -186,11 +194,18 @@ export async function POST(request: NextRequest) {
 
     // === 이메일 알림 전송 (완전 분리, 실패해도 API는 성공) ===
     const hasEmailConfig = process.env.RESEND_API_KEY && process.env.ADMIN_EMAIL
+    console.log('📧 Email config check:', {
+      hasResendKey: !!process.env.RESEND_API_KEY,
+      hasAdminEmail: !!process.env.ADMIN_EMAIL,
+      adminEmail: process.env.ADMIN_EMAIL || 'Not set'
+    })
     
     if (hasEmailConfig) {
+      console.log(`📧 Starting email notification for quote: ${quoteId}`)
       // 이메일 전송을 별도 함수로 분리하여 안전 처리
       setTimeout(async () => {
         try {
+          console.log('📧 Calling sendQuoteNotificationEmail...')
           await sendQuoteNotificationEmail({
             name: safeData.contact.name,
             phone: safeData.contact.phone,
