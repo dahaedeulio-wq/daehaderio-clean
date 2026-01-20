@@ -11,8 +11,8 @@ export const metadata: Metadata = {
   title: '다해드리오 | 믿을 수 있는 청소 서비스',
   description: '다해드리오는 직접 청소와 검증된 업체 중개를 제공합니다.',
   keywords: '청소, 청소업체, 입주청소, 사무실청소, 가정청소, 다해드리오, 중개플랫폼',
-  verification: {
-    naver: '49546d7a2f6a4ff5d686732196c21b79341319c3',
+  other: {
+    'naver-site-verification': '49546d7a2f6a4ff5d686732196c21b79341319c3',
   },
   openGraph: {
     title: '다해드리오 | 믿을 수 있는 청소 서비스',
