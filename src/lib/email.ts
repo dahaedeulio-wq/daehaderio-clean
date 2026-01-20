@@ -189,7 +189,7 @@ ${data.additionalInfo || '특별한 요청사항 없음'}
     const result = await resendInstance.emails.send({
       from: 'onboarding@resend.dev',
       to: [adminEmail],
-      reply_to: 'dahaedeulio@gmail.com',
+      replyTo: 'dahaedeulio@gmail.com',
       subject: '[다해드리오] 새로운 견적 요청이 도착했습니다',
       html: emailHtml,
       text: emailText,
@@ -215,7 +215,7 @@ export async function sendTestEmail(to: string): Promise<boolean> {
     const result = await resendInstance.emails.send({
       from: 'onboarding@resend.dev',
       to: [to],
-      reply_to: 'dahaedeulio@gmail.com',
+      replyTo: 'dahaedeulio@gmail.com',
       subject: '[다해드리오] 이메일 테스트',
       html: `
         <h1>이메일 설정 테스트</h1>
