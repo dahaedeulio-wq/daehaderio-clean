@@ -39,6 +39,7 @@ export async function sendQuoteNotificationEmail(data: QuoteEmailData): Promise<
     
     const adminEmail = process.env.ADMIN_EMAIL || 'dahaedeulio@gmail.com'
     console.log('📧 Admin email:', adminEmail)
+    console.log('📧 From address: onboarding@resend.dev (Resend 무료 플랜)')
     
     if (!adminEmail) {
       console.error('❌ ADMIN_EMAIL environment variable is not set')
