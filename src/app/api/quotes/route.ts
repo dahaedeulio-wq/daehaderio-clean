@@ -192,7 +192,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // === 이메일 알림 전송 (완전 분리, 실패해도 API는 성공) ===
+    // === 이메일 알림 전송 (동기 처리, 실패 시 실제 에러 반환) ===
     const hasEmailConfig = process.env.RESEND_API_KEY && process.env.ADMIN_EMAIL
     console.log('📧 Email config check:', {
       hasResendKey: !!process.env.RESEND_API_KEY,
@@ -202,34 +202,44 @@ export async function POST(request: NextRequest) {
     
     if (hasEmailConfig) {
       console.log(`📧 Starting email notification for quote: ${quoteId}`)
-      // 이메일 전송을 별도 함수로 분리하여 안전 처리
-      setTimeout(async () => {
-        try {
-          console.log('📧 Calling sendQuoteNotificationEmail...')
-          await sendQuoteNotificationEmail({
-            name: safeData.contact.name,
-            phone: safeData.contact.phone,
-            address: safeData.location.address || '주소 미입력',
-            serviceType: safeData.serviceType as 'direct' | 'partner',
-            cleaningType: safeData.cleaningType,
-            additionalInfo: safeData.additionalInfo,
-            submittedAt: quoteData.submittedAt,
-            quoteId: quoteId!
-          })
-          console.log(`✅ Email notification sent successfully for quote: ${quoteId}`)
-        } catch (emailError) {
-          console.error(`❌ Email notification failed for quote: ${quoteId}`, emailError)
-          // 이메일 실패는 로그만 남기고 API 응답에는 영향 없음
-        }
-      }, 0)
+      try {
+        console.log('📧 Calling sendQuoteNotificationEmail...')
+        await sendQuoteNotificationEmail({
+          name: safeData.contact.name,
+          phone: safeData.contact.phone,
+          address: safeData.location.address || '주소 미입력',
+          serviceType: safeData.serviceType as 'direct' | 'partner',
+          cleaningType: safeData.cleaningType,
+          additionalInfo: safeData.additionalInfo,
+          submittedAt: quoteData.submittedAt,
+          quoteId: quoteId!,
+          customerEmail: safeData.contact.email
+        })
+        console.log(`✅ Email notification sent successfully for quote: ${quoteId}`)
+      } catch (emailError) {
+        console.error(`❌ Email notification failed for quote: ${quoteId}`, emailError)
+        // 실제 Resend 에러 메시지를 사용자에게 반환
+        const errorMessage = emailError instanceof Error ? emailError.message : String(emailError)
+        return NextResponse.json({
+          ok: false,
+          message: `견적 요청은 저장되었지만 이메일 발송에 실패했습니다. Resend 오류: ${errorMessage}`,
+          id: quoteId,
+          emailError: errorMessage
+        }, { status: 500 })
+      }
     } else {
       console.warn(`⚠️ Email notification skipped for quote ${quoteId}: Missing RESEND_API_KEY or ADMIN_EMAIL`)
+      return NextResponse.json({
+        ok: false,
+        message: `견적 요청은 저장되었지만 이메일 설정이 누락되었습니다. RESEND_API_KEY: ${!!process.env.RESEND_API_KEY}, ADMIN_EMAIL: ${!!process.env.ADMIN_EMAIL}`,
+        id: quoteId
+      }, { status: 500 })
     }
 
-    // 성공 응답 (이메일과 무관하게 항상 성공)
+    // 성공 응답
     return NextResponse.json({
       ok: true,
-      message: '견적 요청이 성공적으로 접수되었습니다. 곧 연락드리겠습니다.',
+      message: '견적 요청이 성공적으로 접수되었고 이메일 알림도 발송되었습니다.',
       id: quoteId
     }, { status: 201 })
 
