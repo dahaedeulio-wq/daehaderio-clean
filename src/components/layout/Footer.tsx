@@ -101,7 +101,7 @@ export default function Footer() {
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <span className="text-gray-400 text-sm">사업자등록번호: 123-45-67890</span>
-              <span className="text-gray-400 text-sm">대표: 홍길동</span>
+              <span className="text-gray-400 text-sm">대표: 오다윗</span>
             </div>
           </div>
         </div>
