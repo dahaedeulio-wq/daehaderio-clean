@@ -177,10 +177,11 @@ ${data.additionalInfo || '특별한 요청사항 없음'}
 회신 주소: dahaedeulio@gmail.com
     `
 
-    // 단순한 이메일 발송 - 복잡한 로직 제거
+    // Resend 무료 플랜 보안 규칙 100% 준수
     const result = await resendInstance.emails.send({
-      from: 'DahaeDrio <onboarding@resend.dev>', // 무조건 고정
-      to: ['dahaedeulio@gmail.com'], // 무조건 고정
+      from: 'DahaeDrio <onboarding@resend.dev>', // 발신자 완전 고정 (Resend 무료 플랜 필수)
+      to: ['dahaedeulio@gmail.com'], // 수신자 완전 고정
+      replyTo: data.customerEmail || 'dahaedeulio@gmail.com', // 고객 이메일을 회신 주소로 설정
       subject: '[다해드리오] 새로운 견적 요청',
       html: `
         <h2>새로운 견적 요청</h2>

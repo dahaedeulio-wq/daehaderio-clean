@@ -112,8 +112,9 @@ export default function QuotePage() {
           additionalInfo: ''
         })
       } else {
-        // 서버에서 온 구체적인 에러 메시지 사용
-        setError(result.message || '견적 요청 처리 중 문제가 발생했습니다.')
+        // Resend 실제 에러 메시지를 빨간색으로 표시
+        const errorMsg = result.message || result.emailError || '견적 요청 처리 중 문제가 발생했습니다.'
+        setError(`🚨 RESEND 에러: ${errorMsg}`)
       }
     } catch (error) {
       console.error('Error submitting quote:', error)
@@ -185,15 +186,15 @@ export default function QuotePage() {
           <div className="bg-white rounded-2xl shadow-lg p-8">
             {/* 에러 메시지 */}
             {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="mb-6 p-4 bg-red-100 border-2 border-red-500 rounded-lg">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <svg className="h-6 w-6 text-red-600" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                     </svg>
                   </div>
                   <div className="ml-3">
-                    <p className="text-sm text-red-800 font-medium">{error}</p>
+                    <p className="text-base text-red-900 font-bold">{error}</p>
                   </div>
                   <div className="ml-auto">
                     <button
