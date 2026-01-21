@@ -36,32 +36,12 @@ interface QuoteEmailData {
 
 export async function sendQuoteNotificationEmail(data: QuoteEmailData): Promise<boolean> {
   try {
-    console.log('📧 Starting email notification process...')
-    console.log('📧 Quote data:', {
-      name: data.name,
-      phone: data.phone,
-      address: data.address,
-      serviceType: data.serviceType,
-      quoteId: data.quoteId
-    })
+    console.log('📧 SIMPLE EMAIL START - Quote:', data.quoteId)
     
-    // 환경 변수 직접 호출 및 강제 검증
-    const resendApiKey = process.env.RESEND_API_KEY;
-    if (!resendApiKey || resendApiKey.trim() === '') {
-      console.error('❌ RESEND_API_KEY environment variable is missing or empty');
-      throw new Error('RESEND_API_KEY 환경 변수가 설정되지 않았습니다. Vercel 대시보드에서 환경 변수를 확인해주세요.');
-    }
-    
-    // 수신자 강제 고정 (환경변수 무시)
-    const adminEmail = 'dahaedeulio@gmail.com';
-    console.log('📧 Admin email (강제 고정):', adminEmail)
-    console.log('📧 From address (강제 고정): DahaeDrio <onboarding@resend.dev>')
-    console.log('📧 Reply-to address:', data.customerEmail || adminEmail)
-
     const resendInstance = getResendInstance()
     if (!resendInstance) {
-      console.error('❌ Resend instance not available')
-      throw new Error('Resend 인스턴스를 생성할 수 없습니다. API 키를 확인해주세요.');
+      console.error('❌ Resend instance failed')
+      throw new Error('Resend 인스턴스 생성 실패')
     }
     
     console.log('✅ Resend instance ready, preparing email...')
@@ -197,80 +177,73 @@ ${data.additionalInfo || '특별한 요청사항 없음'}
 회신 주소: dahaedeulio@gmail.com
     `
 
-    console.log('📤 Sending email with FORCED Resend 무료 플랜 설정:');
-    console.log('- From (강제 고정): DahaeDrio <onboarding@resend.dev>');
-    console.log('- To (강제 고정):', adminEmail);
-    console.log('- ReplyTo (고객 이메일):', data.customerEmail || adminEmail);
-    
+    // 단순한 이메일 발송 - 복잡한 로직 제거
     const result = await resendInstance.emails.send({
-      from: 'DahaeDrio <onboarding@resend.dev>', // 발신자 강제 고정 (Resend 무료 플랜)
-      to: [adminEmail], // 수신자 강제 고정
-      replyTo: data.customerEmail || adminEmail, // 고객 이메일을 회신 주소로 설정
-      subject: '[다해드리오] 새로운 견적 요청이 도착했습니다',
-      html: emailHtml,
-      text: emailText,
+      from: 'DahaeDrio <onboarding@resend.dev>', // 무조건 고정
+      to: ['dahaedeulio@gmail.com'], // 무조건 고정
+      subject: '[다해드리오] 새로운 견적 요청',
+      html: `
+        <h2>새로운 견적 요청</h2>
+        <p><strong>이름:</strong> ${data.name}</p>
+        <p><strong>연락처:</strong> ${data.phone}</p>
+        <p><strong>주소:</strong> ${data.address}</p>
+        <p><strong>서비스:</strong> ${data.serviceType}</p>
+        <p><strong>청소유형:</strong> ${data.cleaningType}</p>
+        <p><strong>요청사항:</strong> ${data.additionalInfo || '없음'}</p>
+        <p><strong>견적ID:</strong> ${data.quoteId}</p>
+      `,
+      text: `새로운 견적 요청\n이름: ${data.name}\n연락처: ${data.phone}\n주소: ${data.address}\n서비스: ${data.serviceType}\n청소유형: ${data.cleaningType}\n요청사항: ${data.additionalInfo || '없음'}\n견적ID: ${data.quoteId}`
     })
 
-    console.log('✅ Email sent successfully!')
-    console.log('📧 Email ID:', result.data?.id)
-    console.log('📧 Email result:', result)
+    console.log('✅ SIMPLE EMAIL SUCCESS:', result.data?.id)
     return true
 
-  } catch (error) {
-    console.error('❌ Failed to send email notification:', error)
-    console.error('❌ Error details:', {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : 'No stack trace'
-    })
-    // 에러를 상위로 전달하여 API에서 구체적인 메시지 표시
+  } catch (error: any) {
+    // 디버깅 강화 - Resend 에러 전체 출력
+    console.error('❌ RESEND ERROR FULL DETAILS:')
+    console.error('- Error Object:', error)
+    console.error('- Error Message:', error?.message)
+    console.error('- Error Code:', error?.code)
+    console.error('- Error Status:', error?.status)
+    console.error('- Error Response:', error?.response)
+    console.error('- Error Data:', error?.response?.data)
+    console.error('- Full Error JSON:', JSON.stringify(error, null, 2))
+    
     throw error;
   }
 }
 
 export async function sendTestEmail(to: string): Promise<boolean> {
   try {
-    // 환경 변수 직접 호출 및 강제 검증
-    const resendApiKey = process.env.RESEND_API_KEY;
-    if (!resendApiKey || resendApiKey.trim() === '') {
-      console.error('❌ RESEND_API_KEY environment variable is missing or empty');
-      throw new Error('RESEND_API_KEY 환경 변수가 설정되지 않았습니다. Vercel 대시보드에서 환경 변수를 확인해주세요.');
-    }
-    
     const resendInstance = getResendInstance()
     if (!resendInstance) {
-      console.error('❌ Resend instance not available for test email')
-      throw new Error('Resend 인스턴스를 생성할 수 없습니다. API 키를 확인해주세요.');
+      console.error('❌ Test email - Resend instance failed')
+      throw new Error('Resend 인스턴스 생성 실패')
     }
 
-    // 수신자 강제 고정
-    const adminEmail = 'dahaedeulio@gmail.com';
-    console.log('📤 Sending test email with FORCED settings:');
-    console.log('- From (강제 고정): DahaeDrio <onboarding@resend.dev>');
-    console.log('- To (강제 고정):', adminEmail);
-    console.log('- ReplyTo (강제 고정):', adminEmail);
-
+    // 단순한 테스트 이메일 발송
     const result = await resendInstance.emails.send({
-      from: 'DahaeDrio <onboarding@resend.dev>', // 발신자 강제 고정 (Resend 무료 플랜)
-      to: [adminEmail], // 수신자 강제 고정
-      replyTo: adminEmail, // 회신 주소 강제 고정
-      subject: '[다해드리오] 이메일 테스트',
-      html: `
-        <h1>이메일 설정 테스트</h1>
-        <p>다해드리오 이메일 알림 시스템이 정상적으로 작동합니다.</p>
-        <p>테스트 시간: ${new Date().toLocaleString('ko-KR')}</p>
-        <p><strong>발신자 (강제 고정):</strong> DahaeDrio &lt;onboarding@resend.dev&gt;</p>
-        <p><strong>수신자 (강제 고정):</strong> ${adminEmail}</p>
-        <p><strong>회신 주소 (강제 고정):</strong> ${adminEmail}</p>
-      `,
-      text: `이메일 설정 테스트\n\n다해드리오 이메일 알림 시스템이 정상적으로 작동합니다.\n테스트 시간: ${new Date().toLocaleString('ko-KR')}\n\n발신자 (강제 고정): DahaeDrio <onboarding@resend.dev>\n수신자 (강제 고정): ${adminEmail}\n회신 주소 (강제 고정): ${adminEmail}`
+      from: 'DahaeDrio <onboarding@resend.dev>', // 무조건 고정
+      to: ['dahaedeulio@gmail.com'], // 무조건 고정
+      subject: '[다해드리오] 테스트',
+      html: `<h1>테스트 이메일</h1><p>시간: ${new Date().toLocaleString('ko-KR')}</p>`,
+      text: `테스트 이메일\n시간: ${new Date().toLocaleString('ko-KR')}`
     })
 
-    console.log('✅ Test email sent successfully:', result.data?.id)
+    console.log('✅ TEST EMAIL SUCCESS:', result.data?.id)
     return true
 
-  } catch (error) {
-    console.error('❌ Failed to send test email:', error)
-    // 에러를 상위로 전달하여 API에서 구체적인 메시지 표시
+  } catch (error: any) {
+    // 디버깅 강화 - Resend 에러 전체 출력
+    console.error('❌ TEST EMAIL RESEND ERROR FULL DETAILS:')
+    console.error('- Error Object:', error)
+    console.error('- Error Message:', error?.message)
+    console.error('- Error Code:', error?.code)
+    console.error('- Error Status:', error?.status)
+    console.error('- Error Response:', error?.response)
+    console.error('- Error Data:', error?.response?.data)
+    console.error('- Full Error JSON:', JSON.stringify(error, null, 2))
+    
     throw error;
   }
 }
