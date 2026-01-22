@@ -216,15 +216,26 @@ export async function POST(request: NextRequest) {
           customerEmail: safeData.contact.email
         })
         console.log(`✅ Email notification sent successfully for quote: ${quoteId}`)
-      } catch (emailError) {
+      } catch (emailError: any) {
         console.error(`❌ Email notification failed for quote: ${quoteId}`, emailError)
-        // 실제 Resend 에러 메시지를 사용자에게 반환
-        const errorMessage = emailError instanceof Error ? emailError.message : String(emailError)
+        // 구체적인 Resend 에러 정보를 사용자에게 반환
+        const errorName = emailError?.name || 'Unknown Error'
+        const errorMessage = emailError?.message || String(emailError)
+        const errorCode = emailError?.code || 'NO_CODE'
+        
+        console.error('❌ DETAILED EMAIL ERROR INFO:')
+        console.error('- Error Name:', errorName)
+        console.error('- Error Message:', errorMessage)
+        console.error('- Error Code:', errorCode)
+        console.error('- Error Status:', emailError?.status)
+        
         return NextResponse.json({
           ok: false,
           message: `견적 요청은 저장되었지만 이메일 발송에 실패했습니다. Resend 오류: ${errorMessage}`,
           id: quoteId,
-          emailError: errorMessage
+          emailError: errorMessage,
+          errorName: errorName,
+          errorCode: errorCode
         }, { status: 500 })
       }
     } else {

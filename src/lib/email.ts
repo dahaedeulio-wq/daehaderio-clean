@@ -4,17 +4,32 @@ import { Resend } from 'resend'
 let resend: Resend | null = null
 
 function getResendInstance(): Resend | null {
-  if (!process.env.RESEND_API_KEY) {
-    console.warn('⚠️ RESEND_API_KEY not found, email functionality disabled')
+  // 환경변수 호출 방식 보강 - 확실한 인식을 위해 직접 접근
+  const apiKey = process.env.RESEND_API_KEY
+  
+  console.log('🔍 RESEND_API_KEY 환경변수 점검:')
+  console.log('- API Key exists:', !!apiKey)
+  console.log('- API Key length:', apiKey?.length || 0)
+  console.log('- API Key starts with re_:', apiKey?.startsWith('re_') || false)
+  
+  if (!apiKey || apiKey.trim() === '') {
+    console.error('❌ RESEND_API_KEY not found or empty')
+    console.error('- process.env.RESEND_API_KEY:', process.env.RESEND_API_KEY)
+    console.error('- All env keys:', Object.keys(process.env).filter(key => key.includes('RESEND')))
     return null
   }
   
   if (!resend) {
     try {
-      resend = new Resend(process.env.RESEND_API_KEY)
+      console.log('🚀 Creating Resend instance with API key...')
+      resend = new Resend(apiKey)
       console.log('✅ Resend instance created successfully')
+      console.log('- Instance type:', typeof resend)
+      console.log('- Instance methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(resend)))
     } catch (error) {
       console.error('❌ Failed to create Resend instance:', error)
+      console.error('- Error name:', (error as Error)?.name)
+      console.error('- Error message:', (error as Error)?.message)
       return null
     }
   }
@@ -203,6 +218,7 @@ ${data.additionalInfo || '특별한 요청사항 없음'}
     // 디버깅 강화 - Resend 에러 전체 출력
     console.error('❌ RESEND ERROR FULL DETAILS:')
     console.error('- Error Object:', error)
+    console.error('- Error Name:', error?.name)
     console.error('- Error Message:', error?.message)
     console.error('- Error Code:', error?.code)
     console.error('- Error Status:', error?.status)
@@ -210,7 +226,14 @@ ${data.additionalInfo || '특별한 요청사항 없음'}
     console.error('- Error Data:', error?.response?.data)
     console.error('- Full Error JSON:', JSON.stringify(error, null, 2))
     
-    throw error;
+    // 구체적인 에러 정보를 포함한 에러 객체 생성
+    const detailedError = new Error(error?.message || 'Resend API 호출 실패')
+    detailedError.name = error?.name || 'ResendError'
+    ;(detailedError as any).code = error?.code || 'UNKNOWN'
+    ;(detailedError as any).status = error?.status
+    ;(detailedError as any).response = error?.response
+    
+    throw detailedError;
   }
 }
 

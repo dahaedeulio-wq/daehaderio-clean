@@ -112,9 +112,11 @@ export default function QuotePage() {
           additionalInfo: ''
         })
       } else {
-        // Resend 실제 에러 메시지를 빨간색으로 표시
+        // Resend 실제 에러 코드와 메시지를 상세히 표시
+        const errorName = result.errorName || 'Unknown Error'
         const errorMsg = result.message || result.emailError || '견적 요청 처리 중 문제가 발생했습니다.'
-        setError(`🚨 RESEND 에러: ${errorMsg}`)
+        const errorCode = result.errorCode || 'NO_CODE'
+        setError(`🚨 RESEND 에러 상세:\n• 에러명: ${errorName}\n• 에러코드: ${errorCode}\n• 메시지: ${errorMsg}`)
       }
     } catch (error) {
       console.error('Error submitting quote:', error)
