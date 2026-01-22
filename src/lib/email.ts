@@ -1,40 +1,59 @@
 import { Resend } from 'resend'
 
-// Resend 인스턴스를 지연 생성하여 환경변수 없을 때 에러 방지
-let resend: Resend | null = null
-
-function getResendInstance(): Resend | null {
-  // 환경변수 호출 방식 보강 - 확실한 인식을 위해 직접 접근
+// 환경변수 강제 체크 및 상세 로깅
+function checkEnvironmentVariables(): { apiKey: string | null, adminEmail: string | null } {
+  console.log('🔍 환경변수 강제 체크 시작...')
+  
+  // 모든 환경변수 키 확인
+  const allEnvKeys = Object.keys(process.env)
+  console.log('- 전체 환경변수 개수:', allEnvKeys.length)
+  console.log('- RESEND 관련 키들:', allEnvKeys.filter(key => key.includes('RESEND')))
+  console.log('- EMAIL 관련 키들:', allEnvKeys.filter(key => key.includes('EMAIL')))
+  
+  // RESEND_API_KEY 체크
   const apiKey = process.env.RESEND_API_KEY
+  console.log('📧 RESEND_API_KEY 상세 분석:')
+  console.log('- 존재 여부:', !!apiKey)
+  console.log('- 타입:', typeof apiKey)
+  console.log('- 길이:', apiKey?.length || 0)
+  console.log('- 첫 3글자:', apiKey?.substring(0, 3) || 'N/A')
+  console.log('- re_ 시작 여부:', apiKey?.startsWith('re_') || false)
+  console.log('- 공백 포함 여부:', apiKey?.includes(' ') || false)
   
-  console.log('🔍 RESEND_API_KEY 환경변수 점검:')
-  console.log('- API Key exists:', !!apiKey)
-  console.log('- API Key length:', apiKey?.length || 0)
-  console.log('- API Key starts with re_:', apiKey?.startsWith('re_') || false)
+  // ADMIN_EMAIL 체크
+  const adminEmail = process.env.ADMIN_EMAIL
+  console.log('📧 ADMIN_EMAIL 상세 분석:')
+  console.log('- 존재 여부:', !!adminEmail)
+  console.log('- 타입:', typeof adminEmail)
+  console.log('- 값:', adminEmail || 'N/A')
   
-  if (!apiKey || apiKey.trim() === '') {
-    console.error('❌ RESEND_API_KEY not found or empty')
-    console.error('- process.env.RESEND_API_KEY:', process.env.RESEND_API_KEY)
-    console.error('- All env keys:', Object.keys(process.env).filter(key => key.includes('RESEND')))
+  // 비어있는 환경변수 목록
+  const missingVars = []
+  if (!apiKey || apiKey.trim() === '') missingVars.push('RESEND_API_KEY')
+  if (!adminEmail || adminEmail.trim() === '') missingVars.push('ADMIN_EMAIL')
+  
+  if (missingVars.length > 0) {
+    console.error('❌ 비어있는 환경변수들:', missingVars)
+  } else {
+    console.log('✅ 모든 필수 환경변수 확인됨')
+  }
+  
+  return { apiKey, adminEmail }
+}
+
+// 단순화된 Resend 인스턴스 생성
+function createResendInstance(apiKey: string): Resend | null {
+  try {
+    console.log('🚀 Resend 인스턴스 생성 중...')
+    const resendInstance = new Resend(apiKey)
+    console.log('✅ Resend 인스턴스 생성 성공')
+    return resendInstance
+  } catch (error: any) {
+    console.error('❌ Resend 인스턴스 생성 실패:', error)
+    console.error('- Error name:', error?.name)
+    console.error('- Error message:', error?.message)
     return null
   }
-  
-  if (!resend) {
-    try {
-      console.log('🚀 Creating Resend instance with API key...')
-      resend = new Resend(apiKey)
-      console.log('✅ Resend instance created successfully')
-      console.log('- Instance type:', typeof resend)
-      console.log('- Instance methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(resend)))
-    } catch (error) {
-      console.error('❌ Failed to create Resend instance:', error)
-      console.error('- Error name:', (error as Error)?.name)
-      console.error('- Error message:', (error as Error)?.message)
-      return null
-    }
-  }
-  
-  return resend
 }
 
 interface QuoteEmailData {
@@ -51,12 +70,23 @@ interface QuoteEmailData {
 
 export async function sendQuoteNotificationEmail(data: QuoteEmailData): Promise<boolean> {
   try {
-    console.log('📧 SIMPLE EMAIL START - Quote:', data.quoteId)
+    console.log('📧 견적 이메일 발송 시작 - Quote ID:', data.quoteId)
     
-    const resendInstance = getResendInstance()
+    // 환경변수 강제 체크
+    const { apiKey, adminEmail } = checkEnvironmentVariables()
+    
+    if (!apiKey || apiKey.trim() === '') {
+      const errorMsg = 'RESEND_API_KEY 환경변수가 비어있습니다.'
+      console.error('❌', errorMsg)
+      throw new Error(errorMsg)
+    }
+    
+    // Resend 인스턴스 생성
+    const resendInstance = createResendInstance(apiKey)
     if (!resendInstance) {
-      console.error('❌ Resend instance failed')
-      throw new Error('Resend 인스턴스 생성 실패')
+      const errorMsg = 'Resend 인스턴스 생성에 실패했습니다.'
+      console.error('❌', errorMsg)
+      throw new Error(errorMsg)
     }
     
     console.log('✅ Resend instance ready, preparing email...')
@@ -192,11 +222,16 @@ ${data.additionalInfo || '특별한 요청사항 없음'}
 회신 주소: dahaedeulio@gmail.com
     `
 
-    // Resend 무료 플랜 보안 규칙 100% 준수
+    // 발신자/수신자 강제 고정 및 이메일 발송
+    console.log('📤 이메일 발송 설정:')
+    console.log('- From (강제 고정): DahaeDrio <onboarding@resend.dev>')
+    console.log('- To (강제 고정): dahaedeulio@gmail.com')
+    console.log('- ReplyTo: 고객 이메일 또는 지점장 이메일')
+    
     const result = await resendInstance.emails.send({
-      from: 'DahaeDrio <onboarding@resend.dev>', // 발신자 완전 고정 (Resend 무료 플랜 필수)
-      to: ['dahaedeulio@gmail.com'], // 수신자 완전 고정
-      replyTo: data.customerEmail || 'dahaedeulio@gmail.com', // 고객 이메일을 회신 주소로 설정
+      from: 'DahaeDrio <onboarding@resend.dev>', // 발신자 강제 고정
+      to: ['dahaedeulio@gmail.com'], // 수신자 강제 고정
+      replyTo: data.customerEmail || 'dahaedeulio@gmail.com', // 회신 주소 설정
       subject: '[다해드리오] 새로운 견적 요청',
       html: `
         <h2>새로운 견적 요청</h2>
@@ -211,27 +246,36 @@ ${data.additionalInfo || '특별한 요청사항 없음'}
       text: `새로운 견적 요청\n이름: ${data.name}\n연락처: ${data.phone}\n주소: ${data.address}\n서비스: ${data.serviceType}\n청소유형: ${data.cleaningType}\n요청사항: ${data.additionalInfo || '없음'}\n견적ID: ${data.quoteId}`
     })
 
-    console.log('✅ SIMPLE EMAIL SUCCESS:', result.data?.id)
+    console.log('✅ 이메일 발송 성공!')
+    console.log('- Email ID:', result.data?.id)
+    console.log('- Result:', result)
     return true
 
   } catch (error: any) {
-    // 디버깅 강화 - Resend 에러 전체 출력
-    console.error('❌ RESEND ERROR FULL DETAILS:')
-    console.error('- Error Object:', error)
-    console.error('- Error Name:', error?.name)
-    console.error('- Error Message:', error?.message)
-    console.error('- Error Code:', error?.code)
-    console.error('- Error Status:', error?.status)
-    console.error('- Error Response:', error?.response)
-    console.error('- Error Data:', error?.response?.data)
-    console.error('- Full Error JSON:', JSON.stringify(error, null, 2))
+    // 환경변수 재확인 및 상세 에러 로깅
+    console.error('❌ 이메일 발송 실패 - 상세 분석:')
+    
+    // 환경변수 상태 재확인
+    const { apiKey, adminEmail } = checkEnvironmentVariables()
+    console.error('🔍 실패 시점 환경변수 상태:')
+    console.error('- RESEND_API_KEY 존재:', !!apiKey)
+    console.error('- ADMIN_EMAIL 존재:', !!adminEmail)
+    
+    // 에러 상세 정보
+    console.error('📋 에러 상세 정보:')
+    console.error('- Error Name:', error?.name || 'Unknown')
+    console.error('- Error Message:', error?.message || 'No message')
+    console.error('- Error Code:', error?.code || 'NO_CODE')
+    console.error('- Error Status:', error?.status || 'NO_STATUS')
+    console.error('- Error Type:', typeof error)
+    console.error('- Full Error:', JSON.stringify(error, null, 2))
     
     // 구체적인 에러 정보를 포함한 에러 객체 생성
-    const detailedError = new Error(error?.message || 'Resend API 호출 실패')
-    detailedError.name = error?.name || 'ResendError'
-    ;(detailedError as any).code = error?.code || 'UNKNOWN'
+    const detailedError = new Error(error?.message || '이메일 발송 실패')
+    detailedError.name = error?.name || 'EmailSendError'
+    ;(detailedError as any).code = error?.code || 'UNKNOWN_ERROR'
     ;(detailedError as any).status = error?.status
-    ;(detailedError as any).response = error?.response
+    ;(detailedError as any).originalError = error
     
     throw detailedError;
   }
@@ -239,34 +283,53 @@ ${data.additionalInfo || '특별한 요청사항 없음'}
 
 export async function sendTestEmail(to: string): Promise<boolean> {
   try {
-    const resendInstance = getResendInstance()
+    console.log('📧 테스트 이메일 발송 시작')
+    
+    // 환경변수 강제 체크
+    const { apiKey, adminEmail } = checkEnvironmentVariables()
+    
+    if (!apiKey || apiKey.trim() === '') {
+      const errorMsg = 'RESEND_API_KEY 환경변수가 비어있습니다.'
+      console.error('❌', errorMsg)
+      throw new Error(errorMsg)
+    }
+    
+    // Resend 인스턴스 생성
+    const resendInstance = createResendInstance(apiKey)
     if (!resendInstance) {
-      console.error('❌ Test email - Resend instance failed')
-      throw new Error('Resend 인스턴스 생성 실패')
+      const errorMsg = 'Resend 인스턴스 생성에 실패했습니다.'
+      console.error('❌', errorMsg)
+      throw new Error(errorMsg)
     }
 
-    // 단순한 테스트 이메일 발송
+    // 테스트 이메일 발송
     const result = await resendInstance.emails.send({
-      from: 'DahaeDrio <onboarding@resend.dev>', // 무조건 고정
-      to: ['dahaedeulio@gmail.com'], // 무조건 고정
-      subject: '[다해드리오] 테스트',
-      html: `<h1>테스트 이메일</h1><p>시간: ${new Date().toLocaleString('ko-KR')}</p>`,
-      text: `테스트 이메일\n시간: ${new Date().toLocaleString('ko-KR')}`
+      from: 'DahaeDrio <onboarding@resend.dev>', // 발신자 강제 고정
+      to: ['dahaedeulio@gmail.com'], // 수신자 강제 고정
+      subject: '[다해드리오] 테스트 이메일',
+      html: `<h1>테스트 이메일</h1><p>발송 시간: ${new Date().toLocaleString('ko-KR')}</p>`,
+      text: `테스트 이메일\n발송 시간: ${new Date().toLocaleString('ko-KR')}`
     })
 
-    console.log('✅ TEST EMAIL SUCCESS:', result.data?.id)
+    console.log('✅ 테스트 이메일 발송 성공:', result.data?.id)
     return true
 
   } catch (error: any) {
-    // 디버깅 강화 - Resend 에러 전체 출력
-    console.error('❌ TEST EMAIL RESEND ERROR FULL DETAILS:')
-    console.error('- Error Object:', error)
-    console.error('- Error Message:', error?.message)
-    console.error('- Error Code:', error?.code)
-    console.error('- Error Status:', error?.status)
-    console.error('- Error Response:', error?.response)
-    console.error('- Error Data:', error?.response?.data)
-    console.error('- Full Error JSON:', JSON.stringify(error, null, 2))
+    // 환경변수 재확인 및 상세 에러 로깅
+    console.error('❌ 테스트 이메일 발송 실패 - 상세 분석:')
+    
+    // 환경변수 상태 재확인
+    const { apiKey, adminEmail } = checkEnvironmentVariables()
+    console.error('🔍 실패 시점 환경변수 상태:')
+    console.error('- RESEND_API_KEY 존재:', !!apiKey)
+    console.error('- ADMIN_EMAIL 존재:', !!adminEmail)
+    
+    // 에러 상세 정보
+    console.error('📋 테스트 이메일 에러 상세:')
+    console.error('- Error Name:', error?.name || 'Unknown')
+    console.error('- Error Message:', error?.message || 'No message')
+    console.error('- Error Code:', error?.code || 'NO_CODE')
+    console.error('- Full Error:', JSON.stringify(error, null, 2))
     
     throw error;
   }
